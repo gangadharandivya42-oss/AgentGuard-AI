@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentGuard AI | Compounding Errors Demo</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#17253b;--line:#2b3a52;--text:#edf4ff;--muted:#a8b7ce;--green:#35d49a;--red:#ff7474;--amber:#ffd166;--blue:#79aaff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0%,#142a4a 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:28px 20px 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#4f8cff,#35d49a);font-size:25px;color:#071421;font-weight:900}
+h1{font-size:clamp(24px,4vw,36px);line-height:1.15;margin:0}.subtitle{color:var(--muted);margin-top:6px}.tag{border:1px solid #315078;background:#132742;color:#bcd7ff;padding:7px 12px;border-radius:999px;font-size:12px}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.panel{background:linear-gradient(180deg,rgba(23,37,59,.96),rgba(15,25,42,.96));border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 15px 40px #0002}.panel h2{font-size:19px;margin:0 0 5px}.desc{color:var(--muted);font-size:13px;margin:0 0 18px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}.mode{background:#101a2a;border:1px solid var(--line);color:var(--text);padding:13px;border-radius:13px;text-align:left;cursor:pointer}.mode strong{display:block;font-size:14px}.mode span{font-size:12px;color:var(--muted)}.mode.active{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:#172b49}
+.request{padding:13px;background:#0d1727;border:1px solid var(--line);border-radius:12px;color:#dce8fb;margin-bottom:15px;font-size:13px}
+.btnrow{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:750;cursor:pointer;background:var(--blue);color:#091528}.btn.secondary{background:#263650;color:var(--text);border:1px solid #3b4d68}.btn.approve{background:var(--green);color:#06251a}.btn:disabled{opacity:.45;cursor:not-allowed}
+.steps{display:grid;gap:10px}.step{display:flex;gap:12px;align-items:flex-start;background:#0e1929;border:1px solid var(--line);border-radius:13px;padding:12px}.num{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border-radius:10px;background:#23334b;color:#c9d9f2;font-size:12px;font-weight:800}.stepmain{flex:1;min-width:0}.stepname{font-weight:750}.detail{font-size:12px;color:var(--muted);margin-top:3px}.status{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap;background:#263650;color:#cbd9ef}.step.ok{border-color:#26785e}.step.ok .num,.status.ok{background:#123d32;color:var(--green)}.step.bad{border-color:#873f4a}.step.bad .num,.status.bad{background:#49232d;color:#ff9a9a}.step.wait{border-color:#80672c}.step.wait .num,.status.wait{background:#47391a;color:var(--amber)}
+.banner{margin-top:14px;padding:13px;border-radius:12px;background:#10263b;border:1px solid #2c4a6b;color:#cfe3ff;font-size:13px}.banner.success{background:#103126;border-color:#26785e;color:#b5f4da}.banner.error{background:#3c2028;border-color:#873f4a;color:#ffc2c2}.banner.warn{background:#3b3018;border-color:#80672c;color:#ffe4a1}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.metric{background:#0d1727;border:1px solid var(--line);border-radius:13px;padding:13px}.metric label{display:block;color:var(--muted);font-size:11px}.metric strong{display:block;font-size:24px;margin-top:4px}
+.controls{display:grid;gap:16px}.control label{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:7px}.control output{font-weight:800;color:#bcd7ff}input[type=range]{width:100%;accent-color:var(--blue)}
+.bar{height:9px;background:#26354a;border-radius:99px;overflow:hidden;margin-top:8px}.fill{height:100%;width:0;background:linear-gradient(90deg,#4c8cff,#35d49a);transition:width .2s}
+.log{max-height:190px;overflow:auto;background:#0a1321;border:1px solid var(--line);border-radius:12px;padding:10px;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#b9c9df}.log div{padding:3px 0;border-bottom:1px solid #17253a}.log div:last-child{border-bottom:0}
+footer{text-align:center;color:#788ba7;font-size:12px;margin-top:22px}.smallnote{color:var(--muted);font-size:12px;margin-top:12px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.wrap{padding:18px 12px}.panel{padding:16px}.metrics{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">✓</div><div><h1>AgentGuard AI</h1><div class="subtitle">Stop small errors before they become big failures.</div></div></div>
+    <div class="tag">AGENT RELIABILITY LAB · DEMO</div>
+  </header>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>01 / Agent simulator</h2>
+      <p class="desc">Run the same travel-booking task with and without verification checkpoints.</p>
+      <div class="modes">
+        <button class="mode active" id="withoutMode"><strong>⚠ Without checks</strong><span>Errors spread silently</span></button>
+        <button class="mode" id="withMode"><strong>🛡 With checkpoints</strong><span>Verify, retry, approve</span></button>
+      </div>
+      <div class="request"><strong>Travel request</strong><br>Book a trip for 12–15 December. The agent mistakenly selects 21–24 December in step 2. Watch what happens next.</div>
+      <div class="btnrow">
+        <button class="btn" id="runBtn">▶ Run agent</button>
+        <button class="btn secondary" id="resetBtn">↻ Reset demo</button>
+        <button class="btn approve" id="approveBtn" hidden>✓ Approve payment</button>
+      </div>
+      <div id="resultBanner" class="banner" role="status" aria-live="polite">Choose a mode, then press Run agent.</div>
+      <div class="steps" id="steps" style="margin-top:15px"></div>
+      <p class="smallnote">Demo only: no real flights, hotels, payments, or messages are booked or sent.</p>
+    </section>
+
+    <section class="panel">
+      <h2>02 / Success-rate calculator</h2>
+      <p class="desc">Explore how step reliability and checkpoint verification affect a long task.</p>
+      <div class="metrics">
+        <div class="metric"><label>Without checks</label><strong id="rawRate">59.9%</strong></div>
+        <div class="metric"><label>With checkpoints</label><strong id="checkedRate">95.1%</strong></div>
+        <div class="metric"><label>Improvement</label><strong id="improvement">+35.2</strong></div>
+      </div>
+      <div class="controls">
+        <div class="control"><label for="reliability">Per-step reliability <output id="relOut">95%</output></label><input id="reliability" type="range" min="50" max="100" value="95"></div>
+        <div class="control"><label for="count">Number of steps <output id="countOut">10</output></label><input id="count" type="range" min="1" max="30" value="10"></div>
+        <div class="control"><label for="catchRate">Checker catches errors <output id="catchOut">90%</output></label><input id="catchRate" type="range" min="0" max="100" value="90"></div>
+      </div>
+      <div style="margin-top:20px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Without checks</span><strong id="rawLabel">59.9%</strong></div><div class="bar"><div class="fill" id="rawBar"></div></div></div>
+      <div style="margin-top:15px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>With checkpoints</span><strong id="checkedLabel">95.1%</strong></div><div class="bar"><div class="fill" id="checkedBar"></div></div></div>
+      <div class="banner" id="mathNote">Each step succeeds with probability p. Without checks, task success is pⁿ. With checks, this demo assumes detected errors are corrected before continuing.</div>
+      <h2 style="margin-top:22px">03 / Audit log</h2>
+      <p class="desc">A record of each simulated action and verification result.</p>
+      <div class="log" id="log"><div>[READY] Demo initialized.</div></div>
+    </section>
+  </div>
+  <footer>AgentGuard AI · Student prototype · Simulated workflow, not a production booking agent</footer>
+</div>
+<script>
+const stepNames = [
+  "Understand request",
+  "Pick travel dates",
+  "Search flights",
+  "Book hotel",
+  "Payment",
+  "Send confirmation"
+];
+let mode = "without", running = false, pendingApproval = false, finished = false, currentStep = 0, timer = null;
+const $ = id => document.getElementById(id);
+const stepsEl = $("steps"), banner = $("resultBanner"), logEl = $("log");
+function writeLog(message){
+  const row = document.createElement("div");
+  row.textContent = "[" + new Date().toLocaleTimeString() + "] " + message;
+  logEl.prepend(row);
+}
+function setBanner(message, kind=""){
+  banner.textContent = message;
+  banner.className = "banner" + (kind ? " " + kind : "");
+}
+function setMode(next){
+  if(running || pendingApproval) return;
+  mode = next;
+  $("withoutMode").classList.toggle("active", mode==="without");
+  $("withMode").classList.toggle("active", mode==="with");
+  writeLog("Mode selected: " + (mode==="with" ? "With checkpoints" : "Without checks"));
+  setBanner("Mode selected. Press Run agent to start.");
+}
+function makeSteps(){
+  stepsEl.innerHTML = "";
+  stepNames.forEach((name,i)=>{
+    const row = document.createElement("div");
+    row.className = "step";
+    row.id = "step"+i;
+    row.innerHTML = `<div class="num">${String(i+1).padStart(2,"0")}</div><div class="stepmain"><div class="stepname"></div><div class="detail">Waiting to run</div></div><span class="status">WAITING</span>`;
+    row.querySelector(".stepname").textContent = name;
+    stepsEl.appendChild(row);
+  });
+}
+function paintStep(i, cls, detail, status){
+  const row = $("step"+i);
+  row.className = "step " + cls;
+  row.querySelector(".detail").textContent = detail;
+  const s = row.querySelector(".status");
+  s.className = "status " + cls;
+  s.textContent = status;
+}
+function resetDemo(){
+  if(timer) clearTimeout(timer);
+  running = false; pendingApproval = false; finished = false; currentStep = 0;
+  $("runBtn").disabled = false; $("approveBtn").hidden = true;
+  $("withoutMode").disabled = false; $("withMode").disabled = false;
+  makeSteps(); logEl.innerHTML = "<div>[READY] Demo reset.</div>";
+  setBanner("Choose a mode, then press Run agent.");
+}
+function runAgent(){
+  if(running || pendingApproval) return;
+  resetForRun();
+  running = true;
+  $("runBtn").disabled = true; $("withoutMode").disabled = true; $("withMode").disabled = true;
+  writeLog("Agent run started in " + mode + " mode.");
+  setBanner("Agent is running…");
+  advance();
+}
+function resetForRun(){
+  if(timer) clearTimeout(timer);
+  currentStep = 0; finished = false; pendingApproval = false;
+  makeSteps(); $("approveBtn").hidden = true;
+}
+function advance(){
+  if(!running) return;
+  if(currentStep >= stepNames.length){finishRun();return;}
+  const i = currentStep;
+  if(i===0){
+    paintStep(i,"ok","Request parsed: 12–15 December","DONE");
+    writeLog("Request parsed: 12–15 December.");
+    currentStep++; timer=setTimeout(advance,650); return;
+  }
+  if(i===1 && mode==="without"){
+    paintStep(i,"bad","Wrong dates selected: 21–24 December (not detected)","WRONG");
+    writeLog("ERROR: Wrong travel dates selected; no checker was used.");
+    setBanner("An early mistake has gone unnoticed. Later steps will use the wrong dates.","error");
+    currentStep++; timer=setTimeout(advance,650); return;
+  }
+  if(i===1 && mode==="with"){
+    paintStep(i,"wait","Checker found date mismatch. Retrying…","RETRY");
+    writeLog("CHECKPOINT: Date mismatch detected; retry initiated.");
+    setBanner("Checkpoint caught the wrong dates before downstream steps.","warn");
+    timer=setTimeout(()=>{
+      if(!running)return;
+      paintStep(1,"ok","Corrected to 12–15 December and verified","FIXED");
+      writeLog("RETRY SUCCESS: Dates corrected to 12–15 December.");
+      currentStep++; timer=setTimeout(advance,650);
+    },850);
+    return;
+  }
+  if(i===2){
+    if(mode==="without"){
+      paintStep(i,"bad","Flight search uses incorrect 21–24 December dates","CONTAMINATED");
+      writeLog("Flight search built on the wrong dates.");
+    }else{
+      paintStep(i,"ok","Flight options match 12–15 December","VERIFIED");
+      writeLog("CHECKPOINT PASSED: Flight dates match request.");
+    }
+    currentStep++; timer=setTimeout(advance,650); return;
+  }
+  if(i===3){
+    if(mode==="without"){
+      paintStep(i,"bad","Hotel dates inherit the earlier mistake","CONTAMINATED");
+      writeLog("Hotel step inherited the wrong dates.");
+    }else{
+      paintStep(i,"ok","Hotel dates match the verified flights","VERIFIED");
+      writeLog("CHECKPOINT PASSED: Hotel matches verified dates.");
+    }
+    currentStep++; timer=setTimeout(advance,650); return;
+  }
+  if(i===4 && mode==="with"){
+    running = false; pendingApproval = true;
+    paintStep(i,"wait","Waiting for a person to approve the simulated payment","APPROVAL");
+    writeLog("HUMAN CHECKPOINT: Payment paused for approval.");
+    setBanner("Human approval required before payment. Nothing will be charged.","warn");
+    $("approveBtn").hidden = false;
+    return;
+  }
+  if(i===4){
+    paintStep(i,"bad","Simulated payment follows the incorrect trip dates","RISK");
+    writeLog("WARNING: Simulated payment step uses incorrect trip details.");
+    currentStep++; timer=setTimeout(advance,650); return;
+  }
+  if(i===5){
+    if(mode==="without"){
+      paintStep(i,"bad","Confirmation reflects the wrong travel dates","FAILED");
+      writeLog("FINAL RESULT: Wrong trip details carried through the workflow.");
+    }else{
+      paintStep(i,"ok","Confirmation prepared for the verified trip","VERIFIED");
+      writeLog("CHECKPOINT PASSED: Confirmation matches verified trip.");
+    }
+    currentStep++; timer=setTimeout(advance,650);
+  }
+}
+function finishRun(){
+  running = false; finished = true;
+  $("runBtn").disabled = false; $("withoutMode").disabled = false; $("withMode").disabled = false;
+  if(mode==="without"){
+    setBanner("Demo complete: the early date error spread through the workflow. No real booking occurred.","error");
+    writeLog("RUN COMPLETE: Simulated task failed due to a compounding error.");
+  }else{
+    setBanner("Demo complete: the date error was corrected and the risky payment step was approved by a human.","success");
+    writeLog("RUN COMPLETE: Checkpoints prevented the simulated date error from spreading.");
+  }
+}
+$("approveBtn").addEventListener("click",()=>{
+  if(!pendingApproval)return;
+  pendingApproval = false; $("approveBtn").hidden = true;
+  paintStep(4,"ok","Human approved the simulated payment step","APPROVED");
+  writeLog("HUMAN APPROVAL: Simulated payment approved; no money charged.");
+  currentStep = 5; running = true; timer=setTimeout(advance,650);
+});
+$("withoutMode").addEventListener("click",()=>setMode("without"));
+$("withMode").addEventListener("click",()=>setMode("with"));
+$("runBtn").addEventListener("click",runAgent);
+$("resetBtn").addEventListener("click",resetDemo);
+function updateCalculator(){
+  const p = Number($("reliability").value)/100;
+  const n = Number($("count").value);
+  const c = Number($("catchRate").value)/100;
+  const raw = Math.pow(p,n);
+  // Model: each step has failure probability (1-p); checker catches fraction c.
+  // Residual per-step failure = (1-p)*(1-c); assumes caught errors are successfully corrected.
+  const checked = Math.pow(1-(1-p)*(1-c),n);
+  const fmt = v => (v*100).toFixed(1)+"%";
+  $("relOut").textContent = Math.round(p*100)+"%";
+  $("countOut").textContent = n;
+  $("catchOut").textContent = Math.round(c*100)+"%";
+  $("rawRate").textContent = fmt(raw);
+  $("checkedRate").textContent = fmt(checked);
+  $("improvement").textContent = (checked*100-raw*100>=0?"+":"")+(checked*100-raw*100).toFixed(1)+" pp";
+  $("rawLabel").textContent = fmt(raw); $("checkedLabel").textContent = fmt(checked);
+  $("rawBar").style.width = (raw*100)+"%"; $("checkedBar").style.width=(checked*100)+"%";
+  $("mathNote").textContent = `Model assumptions: without checks, success = pⁿ. With checkpoints, each step's residual failure chance is (1 − p) × (1 − checker catch rate), and detected errors are assumed to be corrected. At ${Math.round(p*100)}% reliability over ${n} steps, the estimates are ${fmt(raw)} without checks and ${fmt(checked)} with checkpoints.`;
+}
+["reliability","count","catchRate"].forEach(id=>$(id).addEventListener("input",updateCalculator));
+makeSteps(); updateCalculator();
+</script>
+</body>
+</html>
